@@ -29,6 +29,6 @@ jobs:
         run: |
           git config --global user.name 'Podcast Bot'
           git config --global user.email 'bot@local'
-          git add episode_* || true
+          git add episode_* feed.xml || true
           git commit -m "Aflevering voor $(date +'%Y-%m-%d')" || exit 0
           git push
