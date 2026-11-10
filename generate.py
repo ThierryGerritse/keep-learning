@@ -16,10 +16,12 @@ tavily_client = TavilyClient(api_key=os.environ["TAVILY_API_KEY"])
 
 today = datetime.date.today().isoformat()
 timestamp = datetime.datetime.now().strftime("%H%M")
-audio_filename = f"episode_{today}_{timestamp}.wav"
+
+audio_fn_en = f"episode_en_{today}_{timestamp}.wav"
+audio_fn_nl = f"episode_nl_{today}_{timestamp}.wav"
 
 # ==========================================
-# 2. Live AI Web-research via Tavily
+# 2. Live AI Web-research via Tavily (1x voor beide!)
 # ==========================================
 print("1. Live web-research uitvoeren via Tavily...")
 search_result = tavily_client.search(
@@ -36,153 +38,133 @@ for res in search_result.get("results", []):
 print("Onderzoek afgerond! Nieuws verzameld.")
 
 # ==========================================
-# 3. Dialoog schrijven met Gemini
+# Hulpfuncties voor generatie
 # ==========================================
-print("2. Dialoog schrijven met Gemini...")
+CANDIDATE_MODELS = ['gemini-3.8-flash', 'gemini-3.5-flash-lite', 'gemini-3.1-flash-lite']
 
-prompt_script = f"""
-Here is the latest breaking science & tech research collected live from the web:
+def generate_script(prompt, lang_name):
+    print(f"2. Dialoog schrijven ({lang_name})...")
+    for model_name in CANDIDATE_MODELS:
+        try:
+            res = gemini_client.models.generate_content(model=model_name, contents=prompt)
+            print(f"Script ({lang_name}) succesvol geschreven door {model_name}!")
+            return res.text
+        except Exception as e:
+            if "503" in str(e):
+                print(f"Model {model_name} bezet (503). Volgende proberen...")
+                time.sleep(2)
+            else:
+                print(f"Fout bij {model_name}: {e}")
+    raise RuntimeError(f"Kon geen script genereren voor {lang_name}")
+
+def render_audio(script_text, output_filename, lang_name):
+    print(f"3. Audio renderen ({lang_name}) via Gemini 3.8 Flash TTS...")
+    
+    # Dialogue parts klaarmaken
+    dialogue_parts = []
+    for line in script_text.strip().split("\n"):
+        clean_line = line.strip().replace("**", "")
+        if not clean_line:
+            continue
+        if clean_line.lower().startswith("sophie:"):
+            txt = clean_line.split(":", 1)[1].strip()
+            if txt:
+                dialogue_parts.append(types.Part(text=txt, speech_metadata=types.SpeechMetadata(speaker="Sophie")))
+        elif clean_line.lower().startswith("mark:"):
+            txt = clean_line.split(":", 1)[1].strip()
+            if txt:
+                dialogue_parts.append(types.Part(text=txt, speech_metadata=types.SpeechMetadata(speaker="Mark")))
+                
+    tts_contents = [types.Content(role="user", parts=dialogue_parts)]
+    
+    speech_config = types.SpeechConfig(
+        multi_speaker_voice_config=types.MultiSpeakerVoiceConfig(
+            speaker_voice_configs=[
+                types.SpeakerVoiceConfig(speaker="Sophie", voice_config=types.VoiceConfig(prebuilt_voice_config=types.PrebuiltVoiceConfig(voice_name="Aoede"))),
+                types.SpeakerVoiceConfig(speaker="Mark", voice_config=types.VoiceConfig(prebuilt_voice_config=types.PrebuiltVoiceConfig(voice_name="Puck")))
+            ]
+        )
+    )
+    
+    for attempt in range(1, 4):
+        try:
+            res_audio = gemini_client.models.generate_content(
+                model='gemini-3.8-flash-tts',
+                contents=tts_contents,
+                config=types.GenerateContentConfig(response_modalities=["AUDIO"], speech_config=speech_config)
+            )
+            audio_bytes = res_audio.candidates[0].content.parts[0].inline_data.data
+            with open(output_filename, "wb") as f:
+                f.write(audio_bytes)
+            print(f"Audio ({lang_name}) succesvol opgeslagen als: {output_filename}")
+            return audio_bytes
+        except Exception as e:
+            if "503" in str(e) and attempt < 3:
+                print(f"Piekdrukte audio ({attempt}/3). 10s wachten...")
+                time.sleep(10)
+            else:
+                raise e
+
+# ==========================================
+# 3. Engelse aflevering genereren
+# ==========================================
+prompt_en = f"""
+Here is the latest breaking science & tech research:
 {news_context}
 
-Write a relaxed, easy-to-follow 5-minute podcast episode for 'Always Keep Learning'.
-
+Write a relaxed, easy-to-follow 5-minute podcast episode in ENGLISH for 'Always Keep Learning'.
 Hosts:
 - SOPHIE: Enthusiastic, genuinely curious host. Warm, relatable, keeps the pace clear.
 - MARK: Analytical, thoughtful expert. Calm, grounded, speaks with measured wisdom.
 
-IMPORTANT PACING & FORMAT RULES:
+RULES:
 1. Write with an unhurried, measured cadence so listeners can comfortably follow along.
-2. Insert <short pause> after key concepts and between thoughts to create natural breathing space.
+2. Insert <short pause> after key concepts and between thoughts.
 3. Use vocal tags like <laugh>, <breath>, or <sigh> naturally.
-4. Do NOT use brackets and do NOT write stage directions in parentheses.
-5. Format EVERY line strictly as either:
+4. Format EVERY line strictly as:
 Sophie: Spoken words here with <short pause> breathing room.
 Mark: Thoughtful answer here <breath> explaining the idea simply.
 """
+script_en = generate_script(prompt_en, "Engels")
+bytes_en = render_audio(script_en, audio_fn_en, "Engels")
 
-CANDIDATE_MODELS = [
-    'gemini-3.8-flash',
-    'gemini-3.5-flash-lite',
-    'gemini-3.1-flash-lite'
-]
-
-script_text = None
-for model_name in CANDIDATE_MODELS:
-    try:
-        print(f"Poging om dialoog te schrijven met {model_name}...")
-        response_script = gemini_client.models.generate_content(
-            model=model_name,
-            contents=prompt_script
-        )
-        script_text = response_script.text
-        print(f"Script succesvol geschreven door {model_name}!")
-        break
-    except Exception as e:
-        if "503" in str(e):
-            print(f"Model {model_name} ervaart piekdrukte (503). We schakelen door...")
-            time.sleep(2)
-        else:
-            print(f"Fout bij {model_name}: {e}")
-
-if not script_text:
-    raise RuntimeError("Alle tekstmodellen waren tijdelijk overbelast.")
+# Korte pauze tussen beide calls om netjes binnen de limieten te blijven
+time.sleep(5)
 
 # ==========================================
-# 4. Dialoog omzetten naar gestructureerde Parts
+# 4. Nederlandse aflevering genereren
 # ==========================================
-print("3. Dialoog structureren voor multi-speaker TTS...")
+prompt_nl = f"""
+Hier is het meest recente wetenschaps- en technologienieuws van vandaag:
+{news_context}
 
-dialogue_parts = []
-for line in script_text.strip().split("\n"):
-    clean_line = line.strip().replace("**", "")  # Verwijder markdown bolding
-    if not clean_line:
-        continue
-    
-    if clean_line.lower().startswith("sophie:"):
-        spoken_text = clean_line.split(":", 1)[1].strip()
-        if spoken_text:
-            dialogue_parts.append(
-                types.Part(
-                    text=spoken_text,
-                    speech_metadata=types.SpeechMetadata(speaker="Sophie")
-                )
-            )
-    elif clean_line.lower().startswith("mark:"):
-        spoken_text = clean_line.split(":", 1)[1].strip()
-        if spoken_text:
-            dialogue_parts.append(
-                types.Part(
-                    text=spoken_text,
-                    speech_metadata=types.SpeechMetadata(speaker="Mark")
-                )
-            )
+Schrijf een ontspannen, natuurlijk podcast-gesprek van 5 minuten in het NEDERLANDS voor 'Altijd Blijven Leren'.
+Presentatoren:
+- SOPHIE: Enthousiaste, nieuwsgierige presentatrice. Warm, stelt goede vragen, houdt de vaart erin.
+- MARK: Analytische, rustige expert. Legt complexe zaken eenvoudig uit met alledaagse voorbeelden.
 
-tts_contents = [types.Content(role="user", parts=dialogue_parts)]
+REGELS:
+1. Schrijf in vlot, natuurlijk gesproken Nederlands (geen stijve schrijftaal of journaal-toon).
+2. Gebruik <short pause> na belangrijke feiten en tussen gedachten voor rust en ademruimte.
+3. Gebruik <breath> en <laugh> waar dat natuurlijk aanvoelt.
+4. Format ELKE regel strikt als:
+Sophie: Gesproken tekst hier met <short pause> voldoende rust.
+Mark: Rustig antwoord hier <breath> waarin het inzicht wordt uitgelegd.
+"""
+script_nl = generate_script(prompt_nl, "Nederlands")
+bytes_nl = render_audio(script_nl, audio_fn_nl, "Nederlands")
 
 # ==========================================
-# 5. Tweestemmige audio via Gemini 3.8 Flash TTS
+# 5. Podcast RSS-feed (feed.xml) bijwerken
 # ==========================================
-print("4. Tweestemmige audio renderen via Gemini 3.8 Flash TTS...")
-
-speech_config = types.SpeechConfig(
-    multi_speaker_voice_config=types.MultiSpeakerVoiceConfig(
-        speaker_voice_configs=[
-            types.SpeakerVoiceConfig(
-                speaker="Sophie",
-                voice_config=types.VoiceConfig(
-                    prebuilt_voice_config=types.PrebuiltVoiceConfig(voice_name="Aoede")
-                )
-            ),
-            types.SpeakerVoiceConfig(
-                speaker="Mark",
-                voice_config=types.VoiceConfig(
-                    prebuilt_voice_config=types.PrebuiltVoiceConfig(voice_name="Puck")
-                )
-            )
-        ]
-    )
-)
-
-audio_bytes = None
-for attempt in range(1, 4):
-    try:
-        response_audio = gemini_client.models.generate_content(
-            model='gemini-3.8-flash-tts',
-            contents=tts_contents,
-            config=types.GenerateContentConfig(
-                response_modalities=["AUDIO"],
-                speech_config=speech_config
-            ),
-        )
-        
-        part = response_audio.candidates[0].content.parts[0]
-        audio_bytes = part.inline_data.data
-        
-        with open(audio_filename, "wb") as f:
-            f.write(audio_bytes)
-            
-        print(f"GEWELDIG! Audiobestand succesvol opgeslagen als: {audio_filename}")
-        break
-
-    except Exception as e:
-        if "503" in str(e) and attempt < 3:
-            print(f"Piekdrukte op de audio-servers (poging {attempt}/3). 10 seconden wachten...")
-            time.sleep(10)
-        else:
-            print(f"Fout bij audio-generatie: {e}")
-            raise e
-
-# ==========================================
-# 6. Podcast RSS-feed (feed.xml) bijwerken
-# ==========================================
-print("5. Podcast RSS-feed bijwerken voor Apple Podcasts...")
+print("5. Podcast RSS-feed bijwerken met beide afleveringen...")
 
 repo_full = os.environ.get("GITHUB_REPOSITORY", "jouw-naam/keep-learning")
 owner, repo_name = repo_full.split("/")
-
 base_url = f"https://{owner}.github.io/{repo_name}"
-audio_url = f"{base_url}/{audio_filename}"
-file_size = len(audio_bytes) if audio_bytes else 10000000
+
+audio_url_en = f"{base_url}/{audio_fn_en}"
+audio_url_nl = f"{base_url}/{audio_fn_nl}"
 pub_date = datetime.datetime.now(datetime.timezone.utc).strftime("%a, %d %b %Y %H:%M:%S GMT")
 
 feed_content = f"""<?xml version="1.0" encoding="UTF-8"?>
@@ -190,15 +172,22 @@ feed_content = f"""<?xml version="1.0" encoding="UTF-8"?>
   <channel>
     <title>Altijd Blijven Leren</title>
     <link>{base_url}</link>
-    <language>en-us</language>
+    <language>mul</language>
     <itunes:author>Sophie &amp; Mark</itunes:author>
-    <description>Daily 5-minute science and tech breakthrough podcast hosted by Sophie and Mark.</description>
+    <description>Daily 5-minute science and tech breakthrough podcast in Dutch and English, hosted by Sophie and Mark.</description>
     <item>
-      <title>Always Keep Learning - {today} ({timestamp})</title>
-      <description>Daily science briefing with Sophie and Mark.</description>
+      <title>🇳🇱 Altijd Blijven Leren - {today}</title>
+      <description>Dagelijkse wetenschaps- en techupdate in het Nederlands met Sophie en Mark.</description>
       <pubDate>{pub_date}</pubDate>
-      <enclosure url="{audio_url}" type="audio/wav" length="{file_size}" />
-      <guid>{audio_url}</guid>
+      <enclosure url="{audio_url_nl}" type="audio/wav" length="{len(bytes_nl)}" />
+      <guid>{audio_url_nl}</guid>
+    </item>
+    <item>
+      <title>🇬🇧 Always Keep Learning - {today}</title>
+      <description>Daily science and tech briefing in English with Sophie and Mark.</description>
+      <pubDate>{pub_date}</pubDate>
+      <enclosure url="{audio_url_en}" type="audio/wav" length="{len(bytes_en)}" />
+      <guid>{audio_url_en}</guid>
     </item>
   </channel>
 </rss>
@@ -207,4 +196,4 @@ feed_content = f"""<?xml version="1.0" encoding="UTF-8"?>
 with open("feed.xml", "w", encoding="utf-8") as f:
     f.write(feed_content)
 
-print("Feed.xml succesvol klaargezet voor Apple Podcasts!")
+print("Feed.xml succesvol bijgewerkt met de NL en EN edities!")
