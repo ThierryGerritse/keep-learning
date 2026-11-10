@@ -6,7 +6,7 @@ from google import genai
 from google.genai import types
 
 # ==========================================
-# 1. API Clients initialiseren
+# 1. API Clients initialiseren (v1beta)
 # ==========================================
 gemini_client = genai.Client(
     api_key=os.environ["GEMINI_API_KEY"],
@@ -36,7 +36,7 @@ for res in search_result.get("results", []):
 print("Onderzoek afgerond! Nieuws verzameld.")
 
 # ==========================================
-# 3. Dialoog schrijven met Gemini (Pacing & Regie)
+# 3. Dialoog schrijven met Gemini
 # ==========================================
 print("2. Dialoog schrijven met Gemini...")
 
@@ -50,14 +50,14 @@ Hosts:
 - SOPHIE: Enthusiastic, genuinely curious host. Warm, relatable, keeps the pace clear.
 - MARK: Analytical, thoughtful expert. Calm, grounded, speaks with measured wisdom.
 
-IMPORTANT AUDIO & PACING RULES:
-1. Do NOT rush. Write with an unhurried, relaxed cadence so listeners can absorb the ideas.
-2. Use <short pause> after key facts, between thoughts, and at the end of sentences to create breathing room.
-3. Use audio tags like <laugh>, <breath>, or <sigh> naturally.
-4. Do NOT use brackets like [Speaker: ...] and do NOT write stage directions in parentheses like (excited).
-5. Format EVERY line strictly as:
-Sophie: Spoken text here with <short pause> natural breathing room.
-Mark: Calm answer here <breath> explaining the idea simply.
+IMPORTANT PACING & FORMAT RULES:
+1. Write with an unhurried, measured cadence so listeners can comfortably follow along.
+2. Insert <short pause> after key concepts and between thoughts to create natural breathing space.
+3. Use vocal tags like <laugh>, <breath>, or <sigh> naturally.
+4. Do NOT use brackets and do NOT write stage directions in parentheses.
+5. Format EVERY line strictly as either:
+Sophie: Spoken words here with <short pause> breathing room.
+Mark: Thoughtful answer here <breath> explaining the idea simply.
 """
 
 CANDIDATE_MODELS = [
@@ -88,11 +88,42 @@ if not script_text:
     raise RuntimeError("Alle tekstmodellen waren tijdelijk overbelast.")
 
 # ==========================================
-# 4. Tweestemmige audio via Gemini 3.8 Flash TTS
+# 4. Dialoog omzetten naar gestructureerde Parts
 # ==========================================
-print("3. Tweestemmige audio renderen via Gemini 3.8 Flash TTS...")
+print("3. Dialoog structureren voor multi-speaker TTS...")
 
-# Officiële multi-speaker koppeling: Sophie -> Aoede, Mark -> Puck
+dialogue_parts = []
+for line in script_text.strip().split("\n"):
+    clean_line = line.strip().replace("**", "")  # Verwijder markdown bolding
+    if not clean_line:
+        continue
+    
+    if clean_line.lower().startswith("sophie:"):
+        spoken_text = clean_line.split(":", 1)[1].strip()
+        if spoken_text:
+            dialogue_parts.append(
+                types.Part(
+                    text=spoken_text,
+                    speech_metadata=types.SpeechMetadata(speaker="Sophie")
+                )
+            )
+    elif clean_line.lower().startswith("mark:"):
+        spoken_text = clean_line.split(":", 1)[1].strip()
+        if spoken_text:
+            dialogue_parts.append(
+                types.Part(
+                    text=spoken_text,
+                    speech_metadata=types.SpeechMetadata(speaker="Mark")
+                )
+            )
+
+tts_contents = [types.Content(role="user", parts=dialogue_parts)]
+
+# ==========================================
+# 5. Tweestemmige audio via Gemini 3.8 Flash TTS
+# ==========================================
+print("4. Tweestemmige audio renderen via Gemini 3.8 Flash TTS...")
+
 speech_config = types.SpeechConfig(
     multi_speaker_voice_config=types.MultiSpeakerVoiceConfig(
         speaker_voice_configs=[
@@ -117,7 +148,7 @@ for attempt in range(1, 4):
     try:
         response_audio = gemini_client.models.generate_content(
             model='gemini-3.8-flash-tts',
-            contents=script_text,
+            contents=tts_contents,
             config=types.GenerateContentConfig(
                 response_modalities=["AUDIO"],
                 speech_config=speech_config
@@ -142,9 +173,9 @@ for attempt in range(1, 4):
             raise e
 
 # ==========================================
-# 5. Podcast RSS-feed (feed.xml) bijwerken
+# 6. Podcast RSS-feed (feed.xml) bijwerken
 # ==========================================
-print("4. Podcast RSS-feed bijwerken voor Apple Podcasts...")
+print("5. Podcast RSS-feed bijwerken voor Apple Podcasts...")
 
 repo_full = os.environ.get("GITHUB_REPOSITORY", "jouw-naam/keep-learning")
 owner, repo_name = repo_full.split("/")
@@ -163,7 +194,7 @@ feed_content = f"""<?xml version="1.0" encoding="UTF-8"?>
     <itunes:author>Sophie &amp; Mark</itunes:author>
     <description>Daily 5-minute science and tech breakthrough podcast hosted by Sophie and Mark.</description>
     <item>
-      <title>Always Keep Learning - {today}</title>
+      <title>Always Keep Learning - {today} ({timestamp})</title>
       <description>Daily science briefing with Sophie and Mark.</description>
       <pubDate>{pub_date}</pubDate>
       <enclosure url="{audio_url}" type="audio/wav" length="{file_size}" />
