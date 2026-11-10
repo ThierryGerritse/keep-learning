@@ -2,8 +2,8 @@ name: Generate Daily Podcast
 
 on:
   schedule:
-    - cron: '0 5 * * *' # Elke ochtend om 05:00 UTC (06:00 NL tijd)
-  workflow_dispatch:     # Geeft jou een knop om het direct met de hand te testen!
+    - cron: '0 3 * * *' # Elke nacht om 04:00 uur NL tijd (het stilste uur)
+  workflow_dispatch:     
 
 jobs:
   build:
