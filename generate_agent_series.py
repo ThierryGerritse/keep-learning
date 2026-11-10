@@ -43,7 +43,11 @@ CANDIDATE_MODELS = ['gemini-3.8-flash', 'gemini-3.5-flash-lite', 'gemini-3.1-fla
 def call_gemini(prompt):
     for model_name in CANDIDATE_MODELS:
         try:
-            res = gemini_client.models.generate_content(model=model_name, contents=prompt)
+            res = gemini_client.models.generate_content(
+                model=model_name,
+                contents=prompt,
+                config=types.GenerateContentConfig(response_mime_type="application/json")
+            )
             return res.text
         except Exception as e:
             if "503" in str(e):
@@ -53,20 +57,19 @@ def call_gemini(prompt):
                 print(f"Error with {model_name}: {e}")
     raise RuntimeError("All text models busy.")
 
-# 4. Schrijf 3 opeenvolgende acts voor een totale lengte van ~18 minuten
-acts = []
+# 4. Schrijf 3 acts als gestructureerde JSON
 act_titles = [
     "Act 1: The Recap, Architectural Motivation, and the Core Problem",
     "Act 2: Technical Deep Dive - Mechanisms, Protocols, and Data Structures",
     "Act 3: Practical Implementation, Edge Cases, and Today's Builder Challenge"
 ]
 
-conversation_history_for_next_act = ""
+all_dialogue_turns = []
 
 for act_num, act_title in enumerate(act_titles, 1):
-    print(f"Generating {act_title}...")
+    print(f"Scripting {act_title} (JSON)...")
     act_prompt = f"""
-You are writing a script for a 15-20 minute engineering masterclass podcast called 'Building Your Sovereign AI Assistant'.
+You are writing a script for a technical masterclass podcast called 'Building Your Sovereign AI Assistant'.
 Episode {ep_number}: {ep_title} (Phase: {ep_phase}).
 
 CONTEXT FROM PREVIOUS LESSONS:
@@ -74,33 +77,39 @@ CONTEXT FROM PREVIOUS LESSONS:
 
 TODAY'S CORE SUBJECT:
 {core_concept}
-PRACTICAL HOMEWORK FOR THE BUILDER:
+PRACTICAL HOMEWORK:
 {homework}
 
-CURRENT SECTION TO WRITE: {act_title}
-(Previous context in this episode: {conversation_history_for_next_act if conversation_history_for_next_act else 'Starting the episode.'})
+CURRENT SECTION: {act_title}
 
 HOST PERSONAS:
-- SOPHIE: Lead Developer. Passionate, pragmatic, writes the code, hits practical roadblocks, asks about performance and trade-offs.
-- MARK: Lead AI Systems Architect. Calm, rigorous, seasoned systems thinker, explains engineering patterns and edge cases.
+- SOPHIE: Lead Developer. Passionate, pragmatic, asks probing questions about architecture and trade-offs.
+- MARK: Lead AI Systems Architect. Calm, rigorous, seasoned systems engineer.
 
 PACING & AUDIO RULES:
-1. Write deep, highly technical, intellectual dialogue (NOT superficial hype).
-2. Insert <short pause> after complex explanations, between thoughts, and for natural breathing.
-3. Use <breath> and <laugh> where appropriate.
-4. Target length for this act: ~750-800 words of spoken dialogue.
-5. Format EVERY line strictly as:
-Sophie: Spoken text here with <short pause> breathing room.
-Mark: Calm answer here <breath> explaining the architecture.
+1. Write deep, highly technical dialogue with short turns (1-3 sentences per turn).
+2. Insert <short pause> after complex points and for breathing space.
+3. Use natural tags like <breath> or <laugh>.
+4. Total length for this act: ~20 to 24 alternating turns.
+
+OUTPUT FORMAT:
+Strictly output a valid JSON array of objects with 'speaker' ('Sophie' or 'Mark') and 'text':
+[
+  {{"speaker": "Sophie", "text": "Morning Mark! <short pause> Today we tackle the core architecture."}},
+  {{"speaker": "Mark", "text": "That's right Sophie. <breath> Let's look at how agents differ from passive models."}}
+]
 """
-    act_text = call_gemini(act_prompt)
-    acts.append(act_text)
-    conversation_history_for_next_act += f"\n[Summary of Act {act_num} generated]\n"
+    raw_json = call_gemini(act_prompt).strip()
+    if raw_json.startswith("```"):
+        raw_json = raw_json.split("\n", 1)[1].rsplit("```", 1)[0].strip()
+    
+    turns = json.loads(raw_json)
+    all_dialogue_turns.extend(turns)
     time.sleep(2)
 
-print("All 3 acts scripted successfully. Total length: ~2,300 words.")
+print(f"Total dialogue turns scripted: {len(all_dialogue_turns)}")
 
-# 5. Audio renderen per act en samenvoegen
+# 5. Audio renderen in veilige Micro-Batches van 6 beurten (voorkomt voice-swap!)
 speech_config = types.SpeechConfig(
     multi_speaker_voice_config=types.MultiSpeakerVoiceConfig(
         speaker_voice_configs=[
@@ -110,22 +119,26 @@ speech_config = types.SpeechConfig(
     )
 )
 
-act_wav_bytes = []
+BATCH_SIZE = 6  # 3 beurten per spreker: perfecte conversatie zonder drift
+all_wav_chunks = []
 
-for idx, act_text in enumerate(acts, 1):
-    print(f"Rendering Act {idx}/3 audio via Gemini 3.8 Flash TTS...")
+def chunk_list(lst, n):
+    for i in range(0, len(lst), n):
+        yield lst[i:i + n]
+
+turn_batches = list(chunk_list(all_dialogue_turns, BATCH_SIZE))
+print(f"Rendering {len(turn_batches)} conversational audio blocks...")
+
+for b_idx, batch in enumerate(turn_batches, 1):
     dialogue_parts = []
-    for line in act_text.strip().split("\n"):
-        clean = line.strip().replace("**", "")
-        if clean.lower().startswith("sophie:"):
-            txt = clean.split(":", 1)[1].strip()
-            if txt:
-                dialogue_parts.append(types.Part(text=txt, speech_metadata=types.SpeechMetadata(speaker="Sophie")))
-        elif clean.lower().startswith("mark:"):
-            txt = clean.split(":", 1)[1].strip()
-            if txt:
-                dialogue_parts.append(types.Part(text=txt, speech_metadata=types.SpeechMetadata(speaker="Mark")))
-                
+    for turn in batch:
+        spk = "Sophie" if turn["speaker"].strip().lower() == "sophie" else "Mark"
+        txt = turn["text"].strip()
+        if txt:
+            dialogue_parts.append(
+                types.Part(text=txt, speech_metadata=types.SpeechMetadata(speaker=spk))
+            )
+            
     tts_contents = [types.Content(role="user", parts=dialogue_parts)]
     
     for attempt in range(1, 4):
@@ -135,20 +148,20 @@ for idx, act_text in enumerate(acts, 1):
                 contents=tts_contents,
                 config=types.GenerateContentConfig(response_modalities=["AUDIO"], speech_config=speech_config)
             )
-            act_wav_bytes.append(res_audio.candidates[0].content.parts[0].inline_data.data)
-            print(f"Act {idx} audio generated.")
-            time.sleep(3)
+            all_wav_chunks.append(res_audio.candidates[0].content.parts[0].inline_data.data)
+            print(f"Block {b_idx}/{len(turn_batches)} rendered successfully.")
+            time.sleep(2)
             break
         except Exception as e:
             if "503" in str(e) and attempt < 3:
-                print(f"Audio server busy (attempt {attempt}/3). Waiting 10s...")
+                print(f"Server busy on block {b_idx}. Waiting 10s...")
                 time.sleep(10)
             else:
                 raise e
 
-# 6. Audio naadloos samenvoegen tot 1 lange aflevering
-print("Stitching acts into full 15-20 min master episode...")
-infiles = [io.BytesIO(b) for b in act_wav_bytes]
+# 6. Alle audioblokjes naadloos monteren tot 1 aflevering
+print("Stitching all audio blocks into master episode...")
+infiles = [io.BytesIO(b) for b in all_wav_chunks]
 with wave.open(infiles[0], 'rb') as w_first:
     params = w_first.getparams()
     frames = [w_first.readframes(w_first.getnframes())]
@@ -165,28 +178,23 @@ with wave.open(audio_filename, 'wb') as w_out:
 file_size = os.path.getsize(audio_filename)
 print(f"MASTER EPISODE COMPLETED: {audio_filename} ({file_size / (1024*1024):.2f} MB)")
 
-# 7. Genereer een samenvatting van vandaag voor de recap van morgen
+# 7. Samenvatting maken en state updaten
 summary_prompt = f"""Summarize Episode {ep_number}: '{ep_title}' in 3 concise sentences so the hosts can recap it naturally tomorrow morning."""
 today_summary = call_gemini(summary_prompt).strip()
 
-# Update state.json
 state["current_episode_index"] = current_idx + 1
 state["previous_episode_summary"] = f"In Episode {ep_number} ({ep_title}), we explored: {today_summary}"
 
 with open("state_agent.json", "w", encoding="utf-8") as f:
     json.dump(state, f, indent=2)
 
-print(f"State updated: Next episode will be #{current_idx + 2}")
-
 # 8. RSS Feed (feed_agent.xml) bijwerken
-print("Updating feed_agent.xml for Apple Podcasts...")
 repo_full = os.environ.get("GITHUB_REPOSITORY", "jouw-naam/keep-learning")
 owner, repo_name = repo_full.split("/")
 base_url = f"https://{owner}.github.io/{repo_name}"
 audio_url = f"{base_url}/{audio_filename}"
 pub_date = datetime.datetime.now(datetime.timezone.utc).strftime("%a, %d %b %Y %H:%M:%S GMT")
 
-# Nieuw item voor de feed
 new_item = f"""    <item>
       <title>Episode {ep_number:02d}: {ep_title}</title>
       <description>{core_concept} Homework: {homework}</description>
@@ -212,7 +220,6 @@ if not os.path.exists(feed_file):
 else:
     with open(feed_file, "r", encoding="utf-8") as f:
         existing = f.read()
-    # Voeg het nieuwe item bovenaan in het channel toe
     feed_content = existing.replace("<channel>", f"<channel>\n{new_item}")
 
 with open(feed_file, "w", encoding="utf-8") as f:
