@@ -6,7 +6,7 @@ from google import genai
 from google.genai import types
 
 # ==========================================
-# 1. API Clients initialiseren (met v1beta!)
+# 1. API Clients initialiseren (v1beta voor TTS)
 # ==========================================
 gemini_client = genai.Client(
     api_key=os.environ["GEMINI_API_KEY"],
@@ -35,7 +35,7 @@ for res in search_result.get("results", []):
 print("Onderzoek afgerond! Nieuws verzameld.")
 
 # ==========================================
-# 3. Dialoog schrijven met Gemini
+# 3. Dialoog schrijven met Gemini (met retry)
 # ==========================================
 print("2. Dialoog schrijven met Gemini 3.8 Flash...")
 
@@ -89,6 +89,7 @@ for attempt in range(1, 4):
 # ==========================================
 print("3. Tweestemmige audio renderen via Gemini 3.8 Flash TTS...")
 
+audio_bytes = None
 for attempt in range(1, 4):
     try:
         response_audio = gemini_client.models.generate_content(
@@ -115,3 +116,41 @@ for attempt in range(1, 4):
         else:
             print(f"Fout bij audio-generatie: {e}")
             raise e
+
+# ==========================================
+# 5. Podcast RSS-feed (feed.xml) bijwerken
+# ==========================================
+print("4. Podcast RSS-feed bijwerken voor Apple Podcasts...")
+
+# Haalt automatisch jouw github-gebruikersnaam en reponaam op uit de runner
+repo_full = os.environ.get("GITHUB_REPOSITORY", "jouw-naam/keep-learning")
+owner, repo_name = repo_full.split("/")
+
+base_url = f"https://{owner}.github.io/{repo_name}"
+audio_url = f"{base_url}/{audio_filename}"
+file_size = len(audio_bytes) if audio_bytes else 10000000
+pub_date = datetime.datetime.now(datetime.timezone.utc).strftime("%a, %d %b %Y %H:%M:%S GMT")
+
+feed_content = f"""<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd">
+  <channel>
+    <title>Altijd Blijven Leren</title>
+    <link>{base_url}</link>
+    <language>en-us</language>
+    <itunes:author>Sophie &amp; Mark</itunes:author>
+    <description>Daily 5-minute science and tech breakthrough podcast hosted by Sophie and Mark.</description>
+    <item>
+      <title>Always Keep Learning - {today}</title>
+      <description>Daily science briefing with Sophie and Mark.</description>
+      <pubDate>{pub_date}</pubDate>
+      <enclosure url="{audio_url}" type="audio/wav" length="{file_size}" />
+      <guid>{audio_url}</guid>
+    </item>
+  </channel>
+</rss>
+"""
+
+with open("feed.xml", "w", encoding="utf-8") as f:
+    f.write(feed_content)
+
+print("Feed.xml succesvol klaargezet voor Apple Podcasts!")
