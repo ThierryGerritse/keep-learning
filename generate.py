@@ -6,7 +6,7 @@ from google import genai
 from google.genai import types
 
 # ==========================================
-# 1. API Clients initialiseren (v1beta)
+# 1. API Clients initialiseren
 # ==========================================
 gemini_client = genai.Client(
     api_key=os.environ["GEMINI_API_KEY"],
@@ -15,7 +15,8 @@ gemini_client = genai.Client(
 tavily_client = TavilyClient(api_key=os.environ["TAVILY_API_KEY"])
 
 today = datetime.date.today().isoformat()
-audio_filename = f"episode_{today}.wav"
+timestamp = datetime.datetime.now().strftime("%H%M")
+audio_filename = f"episode_{today}_{timestamp}.wav"
 
 # ==========================================
 # 2. Live AI Web-research via Tavily
@@ -35,7 +36,7 @@ for res in search_result.get("results", []):
 print("Onderzoek afgerond! Nieuws verzameld.")
 
 # ==========================================
-# 3. Dialoog schrijven met Gemini (Modellen-waterval)
+# 3. Dialoog schrijven met Gemini (Pacing & Regie)
 # ==========================================
 print("2. Dialoog schrijven met Gemini...")
 
@@ -43,28 +44,26 @@ prompt_script = f"""
 Here is the latest breaking science & tech research collected live from the web:
 {news_context}
 
-Write a dynamic 5-minute podcast dialogue for 'Always Keep Learning' based on these discoveries.
+Write a relaxed, easy-to-follow 5-minute podcast episode for 'Always Keep Learning'.
 
 Hosts:
-- SOPHIE: Enthusiastic, genuinely curious host. Warm, relatable, keeps the pace lively, reacts naturally.
-- MARK: Analytical, thoughtful expert. Uses everyday analogies, grounded, questions hype.
+- SOPHIE: Enthusiastic, genuinely curious host. Warm, relatable, keeps the pace clear.
+- MARK: Analytical, thoughtful expert. Calm, grounded, speaks with measured wisdom.
 
-Rules:
-- Natural, conversational spoken English (no newsreader tone).
-- Keep speaking turns short (1 to 3 sentences per turn) for active banter.
-- Use strictly these prebuilt voice tags for multi-speaker audio:
-[Speaker: Aoede]
-Sophie: (excited) Opening line...
-
-[Speaker: Puck]
-Mark: (thoughtful) Response...
+IMPORTANT AUDIO & PACING RULES:
+1. Do NOT rush. Write with an unhurried, relaxed cadence so listeners can absorb the ideas.
+2. Use <short pause> after key facts, between thoughts, and at the end of sentences to create breathing room.
+3. Use audio tags like <laugh>, <breath>, or <sigh> naturally.
+4. Do NOT use brackets like [Speaker: ...] and do NOT write stage directions in parentheses like (excited).
+5. Format EVERY line strictly as:
+Sophie: Spoken text here with <short pause> natural breathing room.
+Mark: Calm answer here <breath> explaining the idea simply.
 """
 
-# Modellen-waterval op volgorde van voorkeur
 CANDIDATE_MODELS = [
-    'gemini-3.8-flash',       # 1e keus: Meest geavanceerde model
-    'gemini-3.5-flash-lite',  # 2e keus: Moderne, snelle back-up
-    'gemini-3.1-flash-lite'   # 3e keus: Zeer hoge capaciteit, nooit bezet
+    'gemini-3.8-flash',
+    'gemini-3.5-flash-lite',
+    'gemini-3.1-flash-lite'
 ]
 
 script_text = None
@@ -80,18 +79,38 @@ for model_name in CANDIDATE_MODELS:
         break
     except Exception as e:
         if "503" in str(e):
-            print(f"Model {model_name} ervaart piekdrukte (503). We schakelen door naar de volgende optie...")
+            print(f"Model {model_name} ervaart piekdrukte (503). We schakelen door...")
             time.sleep(2)
         else:
             print(f"Fout bij {model_name}: {e}")
 
 if not script_text:
-    raise RuntimeError("Alle tekstmodellen waren tijdelijk overbelast. Probeer het later opnieuw.")
+    raise RuntimeError("Alle tekstmodellen waren tijdelijk overbelast.")
 
 # ==========================================
 # 4. Tweestemmige audio via Gemini 3.8 Flash TTS
 # ==========================================
 print("3. Tweestemmige audio renderen via Gemini 3.8 Flash TTS...")
+
+# Officiële multi-speaker koppeling: Sophie -> Aoede, Mark -> Puck
+speech_config = types.SpeechConfig(
+    multi_speaker_voice_config=types.MultiSpeakerVoiceConfig(
+        speaker_voice_configs=[
+            types.SpeakerVoiceConfig(
+                speaker="Sophie",
+                voice_config=types.VoiceConfig(
+                    prebuilt_voice_config=types.PrebuiltVoiceConfig(voice_name="Aoede")
+                )
+            ),
+            types.SpeakerVoiceConfig(
+                speaker="Mark",
+                voice_config=types.VoiceConfig(
+                    prebuilt_voice_config=types.PrebuiltVoiceConfig(voice_name="Puck")
+                )
+            )
+        ]
+    )
+)
 
 audio_bytes = None
 for attempt in range(1, 4):
@@ -100,7 +119,8 @@ for attempt in range(1, 4):
             model='gemini-3.8-flash-tts',
             contents=script_text,
             config=types.GenerateContentConfig(
-                response_modalities=["AUDIO"]
+                response_modalities=["AUDIO"],
+                speech_config=speech_config
             ),
         )
         
