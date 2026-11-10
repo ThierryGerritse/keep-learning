@@ -35,7 +35,8 @@ previous_summary = state.get("previous_episode_summary", "This is the series pre
 
 print(f"--- GENERATING EPISODE {ep_number}: {ep_title} ---")
 today = datetime.date.today().isoformat()
-audio_filename = f"agent_ep_{ep_number:02d}_{today}.wav"
+timestamp = datetime.datetime.now().strftime("%H%M")
+audio_filename = f"agent_ep_{ep_number:02d}_{today}_{timestamp}.wav"
 
 # 3. Model fallback waterval
 CANDIDATE_MODELS = ['gemini-3.8-flash', 'gemini-3.5-flash-lite', 'gemini-3.1-flash-lite']
@@ -57,7 +58,7 @@ def call_gemini(prompt):
                 print(f"Error with {model_name}: {e}")
     raise RuntimeError("All text models busy.")
 
-# 4. Schrijf 3 acts als gestructureerde JSON
+# 4. Schrijf 3 acts als gestructureerde JSON met focus op rustig tempo
 act_titles = [
     "Act 1: The Recap, Architectural Motivation, and the Core Problem",
     "Act 2: Technical Deep Dive - Mechanisms, Protocols, and Data Structures",
@@ -84,19 +85,20 @@ CURRENT SECTION: {act_title}
 
 HOST PERSONAS:
 - SOPHIE: Lead Developer. Passionate, pragmatic, asks probing questions about architecture and trade-offs.
-- MARK: Lead AI Systems Architect. Calm, rigorous, seasoned systems engineer.
+- MARK: Lead AI Systems Architect. Calm, rigorous, seasoned systems engineer. Speaks with measured, thoughtful authority.
 
-PACING & AUDIO RULES:
-1. Write deep, highly technical dialogue with short turns (1-3 sentences per turn).
-2. Insert <short pause> after complex points and for breathing space.
-3. Use natural tags like <breath> or <laugh>.
-4. Total length for this act: ~20 to 24 alternating turns.
+PACING & CADENCE RULES (VERY IMPORTANT):
+1. UNHURRIED & MEASURED: The listener is absorbing complex systems engineering. Write in a relaxed, deliberate rhythm.
+2. Mark especially speaks slowly and thoughtfully. Do NOT write long, runaway sentences. Use commas and periods to create natural breaks.
+3. Use <short pause> between concepts and <long pause> before Mark explains a key architectural idea to give it weight.
+4. Use natural tags like <breath> or <laugh> to add warmth.
+5. Total length for this act: ~20 to 24 alternating turns.
 
 OUTPUT FORMAT:
 Strictly output a valid JSON array of objects with 'speaker' ('Sophie' or 'Mark') and 'text':
 [
-  {{"speaker": "Sophie", "text": "Morning Mark! <short pause> Today we tackle the core architecture."}},
-  {{"speaker": "Mark", "text": "That's right Sophie. <breath> Let's look at how agents differ from passive models."}}
+  {{"speaker": "Sophie", "text": "Morning Mark! <short pause> Today we look at memory hierarchy."}},
+  {{"speaker": "Mark", "text": "Good morning Sophie. <long pause> <breath> Yes. This is where most builders get stuck."}}
 ]
 """
     raw_json = call_gemini(act_prompt).strip()
@@ -109,7 +111,7 @@ Strictly output a valid JSON array of objects with 'speaker' ('Sophie' or 'Mark'
 
 print(f"Total dialogue turns scripted: {len(all_dialogue_turns)}")
 
-# 5. Audio renderen in veilige Micro-Batches van 6 beurten (voorkomt voice-swap!)
+# 5. Audio renderen in Micro-Batches van 6 beurten (met slow-paced SpeechMetadata!)
 speech_config = types.SpeechConfig(
     multi_speaker_voice_config=types.MultiSpeakerVoiceConfig(
         speaker_voice_configs=[
@@ -119,7 +121,7 @@ speech_config = types.SpeechConfig(
     )
 )
 
-BATCH_SIZE = 6  # 3 beurten per spreker: perfecte conversatie zonder drift
+BATCH_SIZE = 6
 all_wav_chunks = []
 
 def chunk_list(lst, n):
@@ -135,8 +137,20 @@ for b_idx, batch in enumerate(turn_batches, 1):
         spk = "Sophie" if turn["speaker"].strip().lower() == "sophie" else "Mark"
         txt = turn["text"].strip()
         if txt:
+            # Hier dwingen we het rustige tempo en de doordachte stijl af:
+            if spk == "Mark":
+                meta = types.SpeechMetadata(
+                    speaker="Mark",
+                    style="slow, very deliberate, unhurried, calm and thoughtful systems expert"
+                )
+            else:
+                meta = types.SpeechMetadata(
+                    speaker="Sophie",
+                    style="relaxed, clear, warm, conversational"
+                )
+                
             dialogue_parts.append(
-                types.Part(text=txt, speech_metadata=types.SpeechMetadata(speaker=spk))
+                types.Part(text=txt, speech_metadata=meta)
             )
             
     tts_contents = [types.Content(role="user", parts=dialogue_parts)]
@@ -159,7 +173,7 @@ for b_idx, batch in enumerate(turn_batches, 1):
             else:
                 raise e
 
-# 6. Alle audioblokjes naadloos monteren tot 1 aflevering
+# 6. Audio naadloos monteren
 print("Stitching all audio blocks into master episode...")
 infiles = [io.BytesIO(b) for b in all_wav_chunks]
 with wave.open(infiles[0], 'rb') as w_first:
