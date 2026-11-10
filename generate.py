@@ -92,20 +92,24 @@ for attempt in range(1, 4):
             model='gemini-3.8-flash-tts',
             contents=script_text,
             config=types.GenerateContentConfig(
-                response_mime_type="audio/mp3"
+                response_modalities=["AUDIO"]  # De juiste instelling voor audio
             ),
         )
         
         # Audiobestand opslaan
-        audio_bytes = response_audio.candidates[0].content.parts[0].inline_data.data
+        part = response_audio.candidates[0].content.parts[0]
+        audio_bytes = part.inline_data.data
+        
         with open(audio_filename, "wb") as f:
             f.write(audio_bytes)
             
-        print(f"Succes! Audiobestand opgeslagen als: {audio_filename}")
+        print(f"GEWELDIG! Audiobestand succesvol opgeslagen als: {audio_filename}")
         break
+
     except Exception as e:
         if "503" in str(e) and attempt < 3:
             print(f"Piekdrukte op de audio-servers (poging {attempt}/3). 10 seconden wachten...")
             time.sleep(10)
         else:
+            print(f"Fout bij audio-generatie: {e}")
             raise e
