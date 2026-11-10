@@ -1,0 +1,33 @@
+name: Generate Daily Podcast
+
+on:
+  schedule:
+    - cron: '0 5 * * *' # Elke ochtend om 05:00 UTC (06:00 NL tijd)
+  workflow_dispatch:     # Geeft jou een knop om het direct met de hand te testen!
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install google-genai
+
+      - name: Run Generator
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: python generate.py
+
+      - name: Commit MP3 naar de feed
+        run: |
+          git config --global user.name 'Podcast Bot'
+          git config --global user.email 'bot@local'
+          git add *.mp3
+          git commit -m "Aflevering voor $(date +'%Y-%m-%d')" || exit 0
+          git push
