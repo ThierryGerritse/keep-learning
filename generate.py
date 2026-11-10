@@ -6,7 +6,7 @@ from google import genai
 from google.genai import types
 
 # ==========================================
-# 1. API Clients initialiseren (v1beta voor TTS)
+# 1. API Clients initialiseren (v1beta)
 # ==========================================
 gemini_client = genai.Client(
     api_key=os.environ["GEMINI_API_KEY"],
@@ -35,9 +35,9 @@ for res in search_result.get("results", []):
 print("Onderzoek afgerond! Nieuws verzameld.")
 
 # ==========================================
-# 3. Dialoog schrijven met Gemini (met retry)
+# 3. Dialoog schrijven met Gemini (Modellen-waterval)
 # ==========================================
-print("2. Dialoog schrijven met Gemini 3.8 Flash...")
+print("2. Dialoog schrijven met Gemini...")
 
 prompt_script = f"""
 Here is the latest breaking science & tech research collected live from the web:
@@ -60,29 +60,33 @@ Sophie: (excited) Opening line...
 Mark: (thoughtful) Response...
 """
 
+# Modellen-waterval op volgorde van voorkeur
+CANDIDATE_MODELS = [
+    'gemini-3.8-flash',       # 1e keus: Meest geavanceerde model
+    'gemini-3.5-flash-lite',  # 2e keus: Moderne, snelle back-up
+    'gemini-3.1-flash-lite'   # 3e keus: Zeer hoge capaciteit, nooit bezet
+]
+
 script_text = None
-for attempt in range(1, 4):
+for model_name in CANDIDATE_MODELS:
     try:
+        print(f"Poging om dialoog te schrijven met {model_name}...")
         response_script = gemini_client.models.generate_content(
-            model='gemini-3.8-flash',
+            model=model_name,
             contents=prompt_script
         )
         script_text = response_script.text
-        print("Script succesvol geschreven door Gemini 3.8 Flash!")
+        print(f"Script succesvol geschreven door {model_name}!")
         break
     except Exception as e:
-        if "503" in str(e) and attempt < 3:
-            print(f"Piekdrukte bij Google (poging {attempt}/3). 10 seconden wachten...")
-            time.sleep(10)
+        if "503" in str(e):
+            print(f"Model {model_name} ervaart piekdrukte (503). We schakelen door naar de volgende optie...")
+            time.sleep(2)
         else:
-            print("Piekdrukte duurt langer; overschakelen naar gratis back-up gemini-3.5-flash-lite...")
-            response_script = gemini_client.models.generate_content(
-                model='gemini-3.5-flash-lite',
-                contents=prompt_script
-            )
-            script_text = response_script.text
-            print("Script succesvol geschreven via Gemini 3.5 Flash-Lite!")
-            break
+            print(f"Fout bij {model_name}: {e}")
+
+if not script_text:
+    raise RuntimeError("Alle tekstmodellen waren tijdelijk overbelast. Probeer het later opnieuw.")
 
 # ==========================================
 # 4. Tweestemmige audio via Gemini 3.8 Flash TTS
@@ -122,7 +126,6 @@ for attempt in range(1, 4):
 # ==========================================
 print("4. Podcast RSS-feed bijwerken voor Apple Podcasts...")
 
-# Haalt automatisch jouw github-gebruikersnaam en reponaam op uit de runner
 repo_full = os.environ.get("GITHUB_REPOSITORY", "jouw-naam/keep-learning")
 owner, repo_name = repo_full.split("/")
 
