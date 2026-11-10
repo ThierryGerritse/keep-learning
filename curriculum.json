@@ -1,1 +1,247 @@
-
+[
+  {
+    "episode": 1,
+    "title": "Beyond Chatbots - The Anatomy of an Autonomous Agent",
+    "phase": "Foundations & Architecture",
+    "core_concept": "The difference between passive LLM query-response and autonomous agents. The ReAct loop (Perception, Working Memory, Planning, Action, Reflection). Designing for deterministic execution.",
+    "homework": "Draft the architectural block diagram of your dream assistant: separate brain, memory, tools, and sensors."
+  },
+  {
+    "episode": 2,
+    "title": "Choosing the Brain - Local Engines vs Cloud APIs",
+    "phase": "Foundations & Architecture",
+    "core_concept": "Local inference (Ollama, vLLM, llama.cpp, quantized GGUF models) vs Frontier Cloud APIs (Gemini 2.5/3.8, Claude 3.5, GPT-4o). Latency, privacy guarantees, inference cost at scale, and hybrid routing architectures.",
+    "homework": "Set up a local LLM runner (like Ollama or vLLM) alongside a cloud API key, and benchmark inference time per token."
+  },
+  {
+    "episode": 3,
+    "title": "The System Prompt as an Operating System Kernel",
+    "phase": "Foundations & Architecture",
+    "core_concept": "Metaprompting, behavioral contracts, state machines defined in system prompts, and setting defensive boundaries against prompt injection.",
+    "homework": "Write your assistant's core 'Kernel Prompt' defining strict behavioral boundaries and input-output contracts."
+  },
+  {
+    "episode": 4,
+    "title": "Context Window Dynamics and Attention Degradation",
+    "phase": "Foundations & Architecture",
+    "core_concept": "The mechanics of transformer attention: the 'Lost in the Middle' phenomenon, needle-in-a-haystack limits, token budgets, and why bigger context windows are not an excuse for bad memory hygiene.",
+    "homework": "Calculate your agent's maximum prompt overhead (system prompt + tool schemas) and define a strict working budget."
+  },
+  {
+    "episode": 5,
+    "title": "Structured Outputs and API Contracts",
+    "phase": "Foundations & Architecture",
+    "core_concept": "Why free-form text breaks software pipelines. Pydantic models, JSON Schema generation, constrained decoding, and guaranteed schema compliance for tool calling.",
+    "homework": "Create a Pydantic schema for an agent action command and enforce valid JSON output from your model."
+  },
+  {
+    "episode": 6,
+    "title": "The Base Codebase Architecture",
+    "phase": "Foundations & Architecture",
+    "core_concept": "Setting up the project repository: directory layout, event-driven architecture, internal telemetry, and logging the agent's internal monologue and tool trace.",
+    "homework": "Initialize the Git repo with a modular folder structure: /core, /memory, /tools, and /interfaces."
+  },
+  {
+    "episode": 7,
+    "title": "The Memory Hierarchy - From Registers to Cold Storage",
+    "phase": "Memory & Knowledge Engineering",
+    "core_concept": "Cognitive architectures: working memory, ephemeral scratchpads, short-term episodic memory, and persistent semantic storage.",
+    "homework": "Map out which user data belongs in working memory vs vector storage vs persistent relational records."
+  },
+  {
+    "episode": 8,
+    "title": "Short-Term Episodic Memory and Context Compaction",
+    "phase": "Memory & Knowledge Engineering",
+    "core_concept": "Sliding window buffers, rolling summaries, pruning obsolete tool responses, and dynamic context compaction without losing key facts.",
+    "homework": "Implement a rolling summary function that compresses chat history every 10 turns."
+  },
+  {
+    "episode": 9,
+    "title": "Long-Term Vector Memory - Semantic Embeddings Deep Dive",
+    "phase": "Memory & Knowledge Engineering",
+    "core_concept": "Embedding models (MTEB leaderboard), cosine similarity, semantic chunking algorithms, chunk overlap, and vector dimensionality tradeoffs.",
+    "homework": "Write a chunking script that splits your personal notes based on Markdown headings rather than arbitrary character counts."
+  },
+  {
+    "episode": 10,
+    "title": "Vector Databases in Practice - Choosing Local Simplicity",
+    "phase": "Memory & Knowledge Engineering",
+    "core_concept": "Evaluating vector stores: SQLite-vec vs Chroma vs LanceDB vs pgvector. Why embedding vectors directly into local SQLite beats heavy cloud databases for personal agents.",
+    "homework": "Set up a local SQLite-vec or Chroma instance and store your first 100 embedded personal notes."
+  },
+  {
+    "episode": 11,
+    "title": "Hybrid Search and Cross-Encoder Re-Ranking",
+    "phase": "Memory & Knowledge Engineering",
+    "core_concept": "Why pure vector search fails on keyword lookups (names, serial numbers, dates). Combining BM25 keyword search with dense embeddings, plus secondary re-ranking with cross-encoders.",
+    "homework": "Implement a Reciprocal Rank Fusion (RRF) algorithm combining BM25 and vector similarity scores."
+  },
+  {
+    "episode": 12,
+    "title": "Graph Memory and Knowledge Graphs (GraphRAG)",
+    "phase": "Memory & Knowledge Engineering",
+    "core_concept": "When vector similarity is not enough: nodes, entities, and directed relationships. Storing temporal knowledge (e.g., 'Sophie moved to Amsterdam in 2024') in an entity graph.",
+    "homework": "Create a simple entity-relation JSON table connecting your key contacts, projects, and recurring commitments."
+  },
+  {
+    "episode": 13,
+    "title": "Passive Profile Extraction - Teaching the Agent to Learn You",
+    "phase": "Memory & Knowledge Engineering",
+    "core_concept": "Running background reflection prompts that scan daily user interactions to passively extract personal facts, communication preferences, and habits.",
+    "homework": "Build an extraction prompt that outputs structured profile updates from a raw conversation."
+  },
+  {
+    "episode": 14,
+    "title": "Function Calling Mechanics - Giving the Model Hands",
+    "phase": "Tools & Environment Interaction",
+    "core_concept": "How LLMs switch from language tokens to tool invocation tokens. The tool execution loop: schema declaration, model dispatch, local code execution, and observation feedback.",
+    "homework": "Write a raw tool definition for a local weather function and execute the model's tool call response."
+  },
+  {
+    "episode": 15,
+    "title": "Designing Fault-Tolerant, Self-Healing Tools",
+    "phase": "Tools & Environment Interaction",
+    "core_concept": "Defensive tool engineering: strict type coercion, detailed error messages fed back to the LLM for self-correction, and retry policies for flaky external APIs.",
+    "homework": "Implement a tool handler that intercepts JSONDecode errors and asks the LLM to auto-correct the arguments."
+  },
+  {
+    "episode": 16,
+    "title": "Connecting the Core Productivity Stack - Calendar & Time",
+    "phase": "Tools & Environment Interaction",
+    "core_concept": "Integrating Google Calendar / CalDAV: time-zone arithmetic, resolving relative time ('next Tuesday at 3pm'), handling conflicts, and programmatic availability calculations.",
+    "homework": "Connect a calendar API tool and prompt your agent to find open 45-minute slots tomorrow afternoon."
+  },
+  {
+    "episode": 17,
+    "title": "Email and Communication Pipelines",
+    "phase": "Tools & Environment Interaction",
+    "core_concept": "IMAP/SMTP vs modern REST APIs (Gmail/Outlook). The crucial policy difference between 'Drafting' and 'Sending', plus automated triage, labeling, and summarization.",
+    "homework": "Build an automated inbox triage script that classifies unread emails into: Action Required, Informational, or Spam."
+  },
+  {
+    "episode": 18,
+    "title": "Note Systems & Digital Brain Synchronization",
+    "phase": "Tools & Environment Interaction",
+    "core_concept": "Interfacing with your second brain (Obsidian vaults, local Markdown files, Notion API). Parsing frontmatter, appending daily log entries, and automated bi-directional indexing.",
+    "homework": "Write an agent tool that appends structured meeting notes directly to a daily Markdown file."
+  },
+  {
+    "episode": 19,
+    "title": "Live Web Search and Headless Browser Scraping",
+    "phase": "Tools & Environment Interaction",
+    "core_concept": "Augmenting the agent with real-time web capabilities using Tavily, Serper, and headless Playwright. Cleaning HTML DOM to preserve tokens while extracting relevant data.",
+    "homework": "Build a web research tool that searches a topic, fetches the top URL, and returns clean Markdown."
+  },
+  {
+    "episode": 20,
+    "title": "Safety Architectures and Human-in-the-Loop (HITL)",
+    "phase": "Tools & Environment Interaction",
+    "core_concept": "Principle of least privilege for agents: separating read-only queries from mutating/destructive operations. Implementing approval gates via CLI or smartphone confirmations.",
+    "homework": "Create a permission decorator `@requires_approval` that pauses execution on destructive tool actions."
+  },
+  {
+    "episode": 21,
+    "title": "Autonomous Planning - ReAct, Plan-and-Solve, and DAGs",
+    "phase": "Autonomy & Multi-Agent Systems",
+    "core_concept": "Advanced cognitive patterns: ReAct vs Plan-and-Solve. Decomposing complex goals into Directed Acyclic Graphs (DAGs) and dynamic replanning when tools fail.",
+    "homework": "Prompt your agent to decompose a broad goal ('Plan a 3-day tech workshop') into a sequential dependency tree."
+  },
+  {
+    "episode": 22,
+    "title": "State Machines and Orchestration Frameworks",
+    "phase": "Autonomy & Multi-Agent Systems",
+    "core_concept": "State-driven execution: LangGraph vs LlamaIndex Workflows vs raw Python state machines. Managing execution checkpoints, rollbacks, and persistent session state.",
+    "homework": "Build a 3-node state machine (Plan -> Execute -> Reflect) in pure Python."
+  },
+  {
+    "episode": 23,
+    "title": "Multi-Agent Specialization - The Router and Specialist Pattern",
+    "phase": "Autonomy & Multi-Agent Systems",
+    "core_concept": "Why monolithic single agents fail on complex tasks. Designing an Orchestrator/Router that delegates to specialized sub-agents (e.g., Researcher, Coder, Scheduler, Secretary).",
+    "homework": "Implement a router agent that inspects incoming queries and dispatches to either a 'Personal Data Agent' or 'Coding Agent'."
+  },
+  {
+    "episode": 24,
+    "title": "Inter-Agent Communication and Shared Blackboards",
+    "phase": "Autonomy & Multi-Agent Systems",
+    "core_concept": "Communication topologies between sub-agents: shared blackboard memory vs direct peer-to-peer message passing. Preventing agent debate loops and infinite ping-pongs.",
+    "homework": "Create a shared blackboard dictionary where Agent A posts findings and Agent B reads them to synthesize an answer."
+  },
+  {
+    "episode": 25,
+    "title": "Sandboxed Code Execution",
+    "phase": "Autonomy & Multi-Agent Systems",
+    "core_concept": "Allowing your agent to write and execute Python scripts to solve data problems. Isolating code execution via Docker containers, WebAssembly (Wasm), or cloud sandboxes (E2B).",
+    "homework": "Spin up a local Docker container or Python sandbox where your agent can safely execute math scripts."
+  },
+  {
+    "episode": 26,
+    "title": "Computer Use and Desktop Automation",
+    "phase": "Autonomy & Multi-Agent Systems",
+    "core_concept": "Anthropic Computer Use and OS-level automation: taking screenshots, coordinate calculation, and programmatic mouse/keyboard events. Safety precautions and speed limitations.",
+    "homework": "Test an open-source screen-capture script that crops and resizes screenshots for model inspection."
+  },
+  {
+    "episode": 27,
+    "title": "Proactive Background Triggers and Heartbeat Daemons",
+    "phase": "Autonomy & Multi-Agent Systems",
+    "core_concept": "Moving from reactive (answering user prompts) to proactive (acting autonomously). Setting up heartbeat crons, monitoring incoming data streams, and event-driven wakeups.",
+    "homework": "Write a 15-minute cron daemon that wakes your agent to inspect your calendar and send an alert if a meeting is in 30 minutes."
+  },
+  {
+    "episode": 28,
+    "title": "Loop Detection, Hallucination Guards, and Self-Correction",
+    "phase": "Autonomy & Multi-Agent Systems",
+    "core_concept": "How to detect when an agent is stuck in repetitive tool-call loops. Maximum hop counters, token-budget circuit breakers, and automated self-correction prompts.",
+    "homework": "Implement a sliding history hash-checker that terminates execution if the same tool call with identical arguments occurs 3 times."
+  },
+  {
+    "episode": 29,
+    "title": "Low-Latency Voice Architecture",
+    "phase": "Multimodality, Voice & Deployment",
+    "core_concept": "Deconstructing voice assistant pipelines: Speech-to-Text (Whisper, Deepgram) -> LLM streaming -> Text-to-Speech (Gemini TTS, ElevenLabs). Breaking through the sub-500ms latency barrier.",
+    "homework": "Stream text chunks directly from your LLM response into an audio player without waiting for full completion."
+  },
+  {
+    "episode": 30,
+    "title": "Native Multimodal Models vs Modular Pipelines",
+    "phase": "Multimodality, Voice & Deployment",
+    "core_concept": "Analyzing end-to-end multimodal audio models (Gemini Live WebSocket / OpenAI Realtime) vs modular pipelines (Whisper + LLM + TTS). Tradeoffs in control, tool invocation, and conversational interruption.",
+    "homework": "Connect a local microphone stream to an audio WebSocket endpoint."
+  },
+  {
+    "episode": 31,
+    "title": "Vision and Ambient Perception",
+    "phase": "Multimodality, Voice & Deployment",
+    "core_concept": "Giving your assistant eyes: integrating webcam snapshots, processing incoming screenshots, multimodal document extraction, and spatial visual reasoning.",
+    "homework": "Write a function that grabs a snapshot from your webcam and asks your multimodal model: 'What am I working on right now?'"
+  },
+  {
+    "episode": 32,
+    "title": "The Always-On Home Hub - Hardware & Self-Hosting",
+    "phase": "Multimodality, Voice & Deployment",
+    "core_concept": "Hardware selection for 24/7 self-hosting: Apple Silicon Mac Mini vs Intel NUC vs Raspberry Pi 5. Systemd services, memory management, thermal throttling, and automatic restart daemons.",
+    "homework": "Configure your assistant project to run as an automated system service (`systemd` on Linux or `launchd` on macOS)."
+  },
+  {
+    "episode": 33,
+    "title": "Remote Mobile Access - Tunnels, WireGuard & iOS Shortcuts",
+    "phase": "Multimodality, Voice & Deployment",
+    "core_concept": "Connecting your phone to your home agent securely without opening public firewall ports: Tailscale mesh networking, local API gateways, and iOS Shortcuts / Action Button integration.",
+    "homework": "Set up a Tailscale node on your host machine and test triggering a local agent webhook from your iPhone."
+  },
+  {
+    "episode": 34,
+    "title": "Agent Evals and Continuous Benchmarking",
+    "phase": "Multimodality, Voice & Deployment",
+    "core_concept": "How to prevent regression: building automated eval suites. Testing tool call accuracy, memory recall precision, and latency budgets on every codebase change.",
+    "homework": "Write a 5-test benchmark script that verifies your agent correctly calls the calendar tool across various tricky phrasing styles."
+  },
+  {
+    "episode": 35,
+    "title": "The Sovereign Future - Assembly, Fine-Tuning, and Evolution",
+    "phase": "Multimodality, Voice & Deployment",
+    "core_concept": "The complete architecture unified: a sovereign assistant that possesses local memory, multi-tool mastery, voice perception, and private execution. Looking ahead to self-improving agents and fine-tuning on personal history.",
+    "homework": "Celebrate! Conduct an end-to-end audit of your completed assistant pipeline."
+  }
+]
