@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd">
+  <channel>
+    <title>Building Your Sovereign AI Assistant</title>
+    <link>https://ThierryGerritse.github.io/keep-learning</link>
+    <language>en-us</language>
+    <itunes:author>Sophie &amp; Mark</itunes:author>
+    <description>A 35-part serialized engineering masterclass on designing, coding, and deploying an autonomous personal AI agent from scratch.</description>
+    <item>
+      <title>Episode 01: Beyond Chatbots - The Anatomy of an Autonomous Agent</title>
+      <description>The difference between passive LLM query-response and autonomous agents. The ReAct loop (Perception, Working Memory, Planning, Action, Reflection). Designing for deterministic execution. Homework: Draft the architectural block diagram of your dream assistant: separate brain, memory, tools, and sensors.</description>
+      <pubDate>Tue, 10 Nov 2026 20:57:52 GMT</pubDate>
+      <enclosure url="https://ThierryGerritse.github.io/keep-learning/agent_ep_01_2026-11-10.wav" type="audio/wav" length="47961644" />
+      <guid>https://ThierryGerritse.github.io/keep-learning/agent_ep_01_2026-11-10.wav</guid>
+    </item>
+  </channel>
+</rss>
