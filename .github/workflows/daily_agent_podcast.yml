@@ -1,1 +1,33 @@
+name: Generate AI Agent Masterclass
 
+on:
+  schedule:
+    - cron: '30 3 * * *' # Elke nacht om 04:30 NL tijd (half uur na je nieuwsshow)
+  workflow_dispatch:     # Handmatige knop om aflevering 1 direct nu te testen!
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install google-genai
+
+      - name: Run Agent Masterclass Generator
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: python generate_agent_series.py
+
+      - name: Commit Episode, State and Feed
+        run: |
+          git config --global user.name 'Podcast Bot'
+          git config --global user.email 'bot@local'
+          git add agent_ep_* state_agent.json feed_agent.xml || true
+          git commit -m "Generated Agent Masterclass Episode $(date +'%Y-%m-%d')" || exit 0
+          git push
