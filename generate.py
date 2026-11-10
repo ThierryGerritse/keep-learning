@@ -6,13 +6,16 @@ from google import genai
 from google.genai import types
 
 # ==========================================
-# 1. API Clients initialiseren
+# 1. API Clients initialiseren (met v1beta!)
 # ==========================================
-gemini_client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
+gemini_client = genai.Client(
+    api_key=os.environ["GEMINI_API_KEY"],
+    http_options={'api_version': 'v1beta'}
+)
 tavily_client = TavilyClient(api_key=os.environ["TAVILY_API_KEY"])
 
 today = datetime.date.today().isoformat()
-audio_filename = f"episode_{today}.mp3"
+audio_filename = f"episode_{today}.wav"
 
 # ==========================================
 # 2. Live AI Web-research via Tavily
@@ -32,7 +35,7 @@ for res in search_result.get("results", []):
 print("Onderzoek afgerond! Nieuws verzameld.")
 
 # ==========================================
-# 3. Dialoog schrijven met Gemini (met 503-retry)
+# 3. Dialoog schrijven met Gemini
 # ==========================================
 print("2. Dialoog schrijven met Gemini 3.8 Flash...")
 
@@ -82,7 +85,7 @@ for attempt in range(1, 4):
             break
 
 # ==========================================
-# 4. Audio renderen via Gemini 3.8 Flash TTS
+# 4. Tweestemmige audio via Gemini 3.8 Flash TTS
 # ==========================================
 print("3. Tweestemmige audio renderen via Gemini 3.8 Flash TTS...")
 
@@ -92,11 +95,10 @@ for attempt in range(1, 4):
             model='gemini-3.8-flash-tts',
             contents=script_text,
             config=types.GenerateContentConfig(
-                response_modalities=["AUDIO"]  # De juiste instelling voor audio
+                response_modalities=["AUDIO"]
             ),
         )
         
-        # Audiobestand opslaan
         part = response_audio.candidates[0].content.parts[0]
         audio_bytes = part.inline_data.data
         
