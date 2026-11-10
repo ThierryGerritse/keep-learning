@@ -3,15 +3,22 @@
   <channel>
     <title>Altijd Blijven Leren</title>
     <link>https://ThierryGerritse.github.io/keep-learning</link>
-    <language>en-us</language>
+    <language>mul</language>
     <itunes:author>Sophie &amp; Mark</itunes:author>
-    <description>Daily 5-minute science and tech breakthrough podcast hosted by Sophie and Mark.</description>
+    <description>Daily 5-minute science and tech breakthrough podcast in Dutch and English, hosted by Sophie and Mark.</description>
     <item>
-      <title>Always Keep Learning - 2026-11-10 (1524)</title>
-      <description>Daily science briefing with Sophie and Mark.</description>
-      <pubDate>Tue, 10 Nov 2026 15:26:42 GMT</pubDate>
-      <enclosure url="https://ThierryGerritse.github.io/keep-learning/episode_2026-11-10_1524.wav" type="audio/wav" length="10331878" />
-      <guid>https://ThierryGerritse.github.io/keep-learning/episode_2026-11-10_1524.wav</guid>
+      <title>🇳🇱 Altijd Blijven Leren - 2026-11-10</title>
+      <description>Dagelijkse wetenschaps- en techupdate in het Nederlands met Sophie en Mark.</description>
+      <pubDate>Tue, 10 Nov 2026 16:22:15 GMT</pubDate>
+      <enclosure url="https://ThierryGerritse.github.io/keep-learning/episode_nl_2026-11-10_1620.wav" type="audio/wav" length="10733158" />
+      <guid>https://ThierryGerritse.github.io/keep-learning/episode_nl_2026-11-10_1620.wav</guid>
+    </item>
+    <item>
+      <title>🇬🇧 Always Keep Learning - 2026-11-10</title>
+      <description>Daily science and tech briefing in English with Sophie and Mark.</description>
+      <pubDate>Tue, 10 Nov 2026 16:22:15 GMT</pubDate>
+      <enclosure url="https://ThierryGerritse.github.io/keep-learning/episode_en_2026-11-10_1620.wav" type="audio/wav" length="7499878" />
+      <guid>https://ThierryGerritse.github.io/keep-learning/episode_en_2026-11-10_1620.wav</guid>
     </item>
   </channel>
 </rss>
