@@ -2,8 +2,8 @@ name: Generate AI Agent Masterclass
 
 on:
   schedule:
-    - cron: '30 3 * * *' # Elke nacht om 04:30 NL tijd (half uur na je nieuwsshow)
-  workflow_dispatch:     # Handmatige knop om aflevering 1 direct nu te testen!
+    - cron: '43 3 * * *' 
+  workflow_dispatch:
 
 jobs:
   build:
