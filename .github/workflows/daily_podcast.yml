@@ -2,7 +2,7 @@ name: Generate Daily Podcast
 
 on:
   schedule:
-    - cron: '0 3 * * *' # Elke nacht om 04:00 uur NL tijd (het stilste uur)
+    - cron: '17 3 * * *' 
   workflow_dispatch:     
 
 jobs:
