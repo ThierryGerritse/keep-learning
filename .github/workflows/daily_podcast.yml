@@ -1,8 +1,6 @@
 name: Generate Daily Podcast
 
-on:
-  schedule:
-    - cron: '17 3 * * *' 
+on: 
   workflow_dispatch:     
 
 jobs:
