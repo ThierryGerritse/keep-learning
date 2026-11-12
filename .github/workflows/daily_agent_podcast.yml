@@ -1,8 +1,6 @@
 name: Generate AI Agent Masterclass
 
 on:
-  schedule:
-    - cron: '43 3 * * *' 
   workflow_dispatch:
 
 jobs:
