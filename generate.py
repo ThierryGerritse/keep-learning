@@ -16,12 +16,10 @@ tavily_client = TavilyClient(api_key=os.environ["TAVILY_API_KEY"])
 
 today = datetime.date.today().isoformat()
 timestamp = datetime.datetime.now().strftime("%H%M")
-
-audio_fn_en = f"episode_en_{today}_{timestamp}.wav"
 audio_fn_nl = f"episode_nl_{today}_{timestamp}.wav"
 
 # ==========================================
-# 2. Live AI Web-research via Tavily (1x voor beide!)
+# 2. Live AI Web-research via Tavily
 # ==========================================
 print("1. Live web-research uitvoeren via Tavily...")
 search_result = tavily_client.search(
@@ -80,8 +78,14 @@ def render_audio(script_text, output_filename, lang_name):
     speech_config = types.SpeechConfig(
         multi_speaker_voice_config=types.MultiSpeakerVoiceConfig(
             speaker_voice_configs=[
-                types.SpeakerVoiceConfig(speaker="Sophie", voice_config=types.VoiceConfig(prebuilt_voice_config=types.PrebuiltVoiceConfig(voice_name="Aoede"))),
-                types.SpeakerVoiceConfig(speaker="Mark", voice_config=types.VoiceConfig(prebuilt_voice_config=types.PrebuiltVoiceConfig(voice_name="Puck")))
+                types.SpeakerVoiceConfig(
+                    speaker="Sophie",
+                    voice_config=types.VoiceConfig(prebuilt_voice_config=types.PrebuiltVoiceConfig(voice_name="Aoede"))
+                ),
+                types.SpeakerVoiceConfig(
+                    speaker="Mark",
+                    voice_config=types.VoiceConfig(prebuilt_voice_config=types.PrebuiltVoiceConfig(voice_name="Puck"))
+                )
             ]
         )
     )
@@ -106,33 +110,7 @@ def render_audio(script_text, output_filename, lang_name):
                 raise e
 
 # ==========================================
-# 3. Engelse aflevering genereren
-# ==========================================
-prompt_en = f"""
-Here is the latest breaking science & tech research:
-{news_context}
-
-Write a relaxed, easy-to-follow 5-minute podcast episode in ENGLISH for 'Always Keep Learning'.
-Hosts:
-- SOPHIE: Enthusiastic, genuinely curious host. Warm, relatable, keeps the pace clear.
-- MARK: Analytical, thoughtful expert. Calm, grounded, speaks with measured wisdom.
-
-RULES:
-1. Write with an unhurried, measured cadence so listeners can comfortably follow along.
-2. Insert <short pause> after key concepts and between thoughts.
-3. Use vocal tags like <laugh>, <breath>, or <sigh> naturally.
-4. Format EVERY line strictly as:
-Sophie: Spoken words here with <short pause> breathing room.
-Mark: Thoughtful answer here <breath> explaining the idea simply.
-"""
-script_en = generate_script(prompt_en, "Engels")
-bytes_en = render_audio(script_en, audio_fn_en, "Engels")
-
-# Korte pauze tussen beide calls om netjes binnen de limieten te blijven
-time.sleep(5)
-
-# ==========================================
-# 4. Nederlandse aflevering genereren
+# 3. Nederlandse aflevering genereren
 # ==========================================
 prompt_nl = f"""
 Hier is het meest recente wetenschaps- en technologienieuws van vandaag:
@@ -155,15 +133,14 @@ script_nl = generate_script(prompt_nl, "Nederlands")
 bytes_nl = render_audio(script_nl, audio_fn_nl, "Nederlands")
 
 # ==========================================
-# 5. Podcast RSS-feed (feed.xml) bijwerken
+# 4. Podcast RSS-feed (feed.xml) bijwerken
 # ==========================================
-print("5. Podcast RSS-feed bijwerken met beide afleveringen...")
+print("4. Podcast RSS-feed bijwerken...")
 
 repo_full = os.environ.get("GITHUB_REPOSITORY", "jouw-naam/keep-learning")
 owner, repo_name = repo_full.split("/")
 base_url = f"https://{owner}.github.io/{repo_name}"
 
-audio_url_en = f"{base_url}/{audio_fn_en}"
 audio_url_nl = f"{base_url}/{audio_fn_nl}"
 pub_date = datetime.datetime.now(datetime.timezone.utc).strftime("%a, %d %b %Y %H:%M:%S GMT")
 
@@ -172,22 +149,15 @@ feed_content = f"""<?xml version="1.0" encoding="UTF-8"?>
   <channel>
     <title>Altijd Blijven Leren</title>
     <link>{base_url}</link>
-    <language>mul</language>
+    <language>nl-nl</language>
     <itunes:author>Sophie &amp; Mark</itunes:author>
-    <description>Daily 5-minute science and tech breakthrough podcast in Dutch and English, hosted by Sophie and Mark.</description>
+    <description>Dagelijkse 5-minuten wetenschaps- en techupdate met Sophie en Mark.</description>
     <item>
-      <title>🇳🇱 Altijd Blijven Leren - {today}</title>
+      <title>Altijd Blijven Leren - {today}</title>
       <description>Dagelijkse wetenschaps- en techupdate in het Nederlands met Sophie en Mark.</description>
       <pubDate>{pub_date}</pubDate>
       <enclosure url="{audio_url_nl}" type="audio/wav" length="{len(bytes_nl)}" />
       <guid>{audio_url_nl}</guid>
-    </item>
-    <item>
-      <title>🇬🇧 Always Keep Learning - {today}</title>
-      <description>Daily science and tech briefing in English with Sophie and Mark.</description>
-      <pubDate>{pub_date}</pubDate>
-      <enclosure url="{audio_url_en}" type="audio/wav" length="{len(bytes_en)}" />
-      <guid>{audio_url_en}</guid>
     </item>
   </channel>
 </rss>
@@ -196,4 +166,4 @@ feed_content = f"""<?xml version="1.0" encoding="UTF-8"?>
 with open("feed.xml", "w", encoding="utf-8") as f:
     f.write(feed_content)
 
-print("Feed.xml succesvol bijgewerkt met de NL en EN edities!")
+print("Feed.xml succesvol bijgewerkt met de Nederlandse editie!")
