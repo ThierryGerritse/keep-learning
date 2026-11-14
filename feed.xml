@@ -3,22 +3,15 @@
   <channel>
     <title>Altijd Blijven Leren</title>
     <link>https://ThierryGerritse.github.io/keep-learning</link>
-    <language>mul</language>
+    <language>nl-nl</language>
     <itunes:author>Sophie &amp; Mark</itunes:author>
-    <description>Daily 5-minute science and tech breakthrough podcast in Dutch and English, hosted by Sophie and Mark.</description>
+    <description>Dagelijkse 5-minuten wetenschaps- en techupdate met Sophie en Mark.</description>
     <item>
-      <title>🇳🇱 Altijd Blijven Leren - 2026-11-13</title>
+      <title>Altijd Blijven Leren - 2026-11-14</title>
       <description>Dagelijkse wetenschaps- en techupdate in het Nederlands met Sophie en Mark.</description>
-      <pubDate>Fri, 13 Nov 2026 03:22:16 GMT</pubDate>
-      <enclosure url="https://ThierryGerritse.github.io/keep-learning/episode_nl_2026-11-13_0317.wav" type="audio/wav" length="13858588" />
-      <guid>https://ThierryGerritse.github.io/keep-learning/episode_nl_2026-11-13_0317.wav</guid>
-    </item>
-    <item>
-      <title>🇬🇧 Always Keep Learning - 2026-11-13</title>
-      <description>Daily science and tech briefing in English with Sophie and Mark.</description>
-      <pubDate>Fri, 13 Nov 2026 03:22:16 GMT</pubDate>
-      <enclosure url="https://ThierryGerritse.github.io/keep-learning/episode_en_2026-11-13_0317.wav" type="audio/wav" length="4965148" />
-      <guid>https://ThierryGerritse.github.io/keep-learning/episode_en_2026-11-13_0317.wav</guid>
+      <pubDate>Sat, 14 Nov 2026 03:20:52 GMT</pubDate>
+      <enclosure url="https://ThierryGerritse.github.io/keep-learning/episode_nl_2026-11-14_0317.wav" type="audio/wav" length="15757468" />
+      <guid>https://ThierryGerritse.github.io/keep-learning/episode_nl_2026-11-14_0317.wav</guid>
     </item>
   </channel>
 </rss>
