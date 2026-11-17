@@ -1,4 +1,5 @@
 import os
+import json
 import datetime
 import time
 from tavily import TavilyClient
@@ -19,13 +20,36 @@ timestamp = datetime.datetime.now().strftime("%H%M")
 audio_fn_nl = f"episode_nl_{today}_{timestamp}.wav"
 
 # ==========================================
-# 2. Live AI Web-research via Tavily
+# 2. Geheugen laden (Reeds besproken onderwerpen)
+# ==========================================
+history_file = "covered_topics.json"
+if os.path.exists(history_file):
+    try:
+        with open(history_file, "r", encoding="utf-8") as f:
+            topic_history = json.load(f)
+    except Exception:
+        topic_history = []
+else:
+    topic_history = []
+
+# Maak een zwarte lijst van onderwerpen van de afgelopen 14 dagen
+recent_entries = topic_history[-14:]
+if recent_entries:
+    blacklist_text = "\n".join([f"- {item['date']}: {item['topics']}" for item in recent_entries])
+else:
+    blacklist_text = "Geen eerdere onderwerpen geregistreerd."
+
+print(f"Geheugen geladen: {len(recent_entries)} recente afleveringen op de zwarte lijst.")
+
+# ==========================================
+# 3. Live AI Web-research via Tavily (Strikte 24u-filter)
 # ==========================================
 print("1. Live web-research uitvoeren via Tavily...")
 search_result = tavily_client.search(
-    query="most fascinating scientific breakthroughs discoveries technology news last 24 hours",
+    query="most fascinating scientific breakthroughs discoveries technology biology space news",
+    time_range="day",       # Alleen nieuws van de afgelopen 24 uur!
     search_depth="advanced",
-    max_results=5,
+    max_results=7,          # 7 bronnen zodat er genoeg keus is buiten de zwarte lijst
     include_answer=True
 )
 
@@ -58,7 +82,6 @@ def generate_script(prompt, lang_name):
 def render_audio(script_text, output_filename, lang_name):
     print(f"3. Audio renderen ({lang_name}) via Gemini 3.8 Flash TTS...")
     
-    # Dialogue parts klaarmaken
     dialogue_parts = []
     for line in script_text.strip().split("\n"):
         clean_line = line.strip().replace("**", "")
@@ -110,11 +133,16 @@ def render_audio(script_text, output_filename, lang_name):
                 raise e
 
 # ==========================================
-# 3. Nederlandse aflevering genereren
+# 4. Nederlandse aflevering genereren (Met Zwarte Lijst!)
 # ==========================================
 prompt_nl = f"""
 Hier is het meest recente wetenschaps- en technologienieuws van vandaag:
 {news_context}
+
+CRUCIALE REGEL TEGEN HERHALING:
+Onderstaande onderwerpen zijn de afgelopen 14 dagen AL UITGEBREID BESPROKEN. 
+Kies hier absoluut GEEN herhalingen van, maar kies VERPLICHT NIEUWE, andere doorbraken uit het nieuws hierboven:
+{blacklist_text}
 
 Schrijf een ontspannen, natuurlijk podcast-gesprek van 5 minuten in het NEDERLANDS voor 'Altijd Blijven Leren'.
 Presentatoren:
@@ -129,13 +157,44 @@ REGELS:
 Sophie: Gesproken tekst hier met <short pause> voldoende rust.
 Mark: Rustig antwoord hier <breath> waarin het inzicht wordt uitgelegd.
 """
+
 script_nl = generate_script(prompt_nl, "Nederlands")
 bytes_nl = render_audio(script_nl, audio_fn_nl, "Nederlands")
 
 # ==========================================
-# 4. Podcast RSS-feed (feed.xml) bijwerken
+# 5. Geheugen bijwerken met onderwerpen van vandaag
 # ==========================================
-print("4. Podcast RSS-feed bijwerken...")
+print("5. Onderwerpen van vandaag extraheren en opslaan in geheugen...")
+extract_prompt = f"""Geef in 1 korte zin (max 15 woorden) een komma-gescheiden opsomming van de 2 of 3 specifieke hoofdonderwerpen die in dit script zijn besproken:
+
+{script_nl}"""
+
+try:
+    summary_res = gemini_client.models.generate_content(
+        model='gemini-3.5-flash-lite',
+        contents=extract_prompt
+    )
+    todays_topics = summary_res.text.strip().replace("\n", " ")
+except Exception:
+    todays_topics = "Diverse recente wetenschapsontdekkingen"
+
+topic_history.append({
+    "date": today,
+    "topics": todays_topics
+})
+
+# Bewaar maximaal 30 dagen historie om het bestand compact te houden
+topic_history = topic_history[-30:]
+
+with open(history_file, "w", encoding="utf-8") as f:
+    json.dump(topic_history, f, indent=2, ensure_ascii=False)
+
+print(f"Onderwerpen geregistreerd: {todays_topics}")
+
+# ==========================================
+# 6. Podcast RSS-feed (feed.xml) bijwerken
+# ==========================================
+print("6. Podcast RSS-feed bijwerken...")
 
 repo_full = os.environ.get("GITHUB_REPOSITORY", "jouw-naam/keep-learning")
 owner, repo_name = repo_full.split("/")
@@ -154,7 +213,7 @@ feed_content = f"""<?xml version="1.0" encoding="UTF-8"?>
     <description>Dagelijkse 5-minuten wetenschaps- en techupdate met Sophie en Mark.</description>
     <item>
       <title>Altijd Blijven Leren - {today}</title>
-      <description>Dagelijkse wetenschaps- en techupdate in het Nederlands met Sophie en Mark.</description>
+      <description>{todays_topics}</description>
       <pubDate>{pub_date}</pubDate>
       <enclosure url="{audio_url_nl}" type="audio/wav" length="{len(bytes_nl)}" />
       <guid>{audio_url_nl}</guid>
@@ -166,4 +225,4 @@ feed_content = f"""<?xml version="1.0" encoding="UTF-8"?>
 with open("feed.xml", "w", encoding="utf-8") as f:
     f.write(feed_content)
 
-print("Feed.xml succesvol bijgewerkt met de Nederlandse editie!")
+print("Feed.xml succesvol bijgewerkt!")
