@@ -121,7 +121,7 @@ speech_config = types.SpeechConfig(
     )
 )
 
-BATCH_SIZE = 6
+BATCH_SIZE = 14
 all_wav_chunks = []
 
 def chunk_list(lst, n):
