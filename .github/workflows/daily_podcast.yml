@@ -23,10 +23,10 @@ jobs:
           TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}   
         run: python generate.py
 
-      - name: Commit MP3 naar de feed
+      - name: Commit audio en feed
         run: |
           git config --global user.name 'Podcast Bot'
           git config --global user.email 'bot@local'
-          git add episode_* feed.xml || true
-          git commit -m "Aflevering voor $(date +'%Y-%m-%d')" || exit 0
+          git add episode_* feed.xml covered_topics.json || true
+          git commit -m "Nieuwe aflevering en geheugen bijgewerkt voor $(date +'%Y-%m-%d')" || exit 0
           git push
