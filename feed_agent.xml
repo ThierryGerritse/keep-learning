@@ -2,6 +2,13 @@
 <rss version="2.0" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd">
   <channel>
     <item>
+      <title>Episode 04: Context Window Dynamics and Attention Degradation</title>
+      <description>The mechanics of transformer attention: the 'Lost in the Middle' phenomenon, needle-in-a-haystack limits, token budgets, and why bigger context windows are not an excuse for bad memory hygiene. Homework: Calculate your agent's maximum prompt overhead (system prompt + tool schemas) and define a strict working budget.</description>
+      <pubDate>Fri, 20 Nov 2026 03:32:32 GMT</pubDate>
+      <enclosure url="https://ThierryGerritse.github.io/keep-learning/agent_ep_04_2026-11-20_0327.wav" type="audio/wav" length="36303404" />
+      <guid>https://ThierryGerritse.github.io/keep-learning/agent_ep_04_2026-11-20_0327.wav</guid>
+    </item>
+    <item>
       <title>Episode 03: The System Prompt as an Operating System Kernel</title>
       <description>Metaprompting, behavioral contracts, state machines defined in system prompts, and setting defensive boundaries against prompt injection. Homework: Write your assistant's core 'Kernel Prompt' defining strict behavioral boundaries and input-output contracts.</description>
       <pubDate>Thu, 19 Nov 2026 03:46:54 GMT</pubDate>
