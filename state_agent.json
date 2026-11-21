@@ -1,4 +1,4 @@
 {
-  "current_episode_index": 4,
-  "previous_episode_summary": "In Episode 4 (Context Window Dynamics and Attention Degradation), we explored: {\n  \"episode\": \"Episode 4: Context Window Dynamics and Attention Degradation\",\n  \"recap\": \"In Episode 4, we explored the reality of expanding context windows, highlighting why merely increasing token capacity often leads to the 'lost in the middle' phenomenon and attention dilution. We broke down the computational costs and architectural limits that prevent models from retrieving facts evenly across long prompts. Finally, we walked through practical mitigation tactics, from prompt layout optimization and KV cache management to effective hybrid RAG architectures.\"\n}"
+  "current_episode_index": 5,
+  "previous_episode_summary": "In Episode 5 (Structured Outputs and API Contracts), we explored: {\n  \"summary\": \"In Episode 5, we explored how enforcing structured outputs like JSON transforms unpredictable LLM responses into dependable software components. We discussed the importance of strict API contracts and schema validation using tools like Pydantic to eliminate downstream parsing failures. Finally, we emphasized how native structured generation bridges the gap between generative models and robust production architecture.\"\n}"
 }
