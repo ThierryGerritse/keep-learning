@@ -2,6 +2,13 @@
 <rss version="2.0" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd">
   <channel>
     <item>
+      <title>Episode 06: The Base Codebase Architecture</title>
+      <description>Setting up the project repository: directory layout, event-driven architecture, internal telemetry, and logging the agent's internal monologue and tool trace. Homework: Initialize the Git repo with a modular folder structure: /core, /memory, /tools, and /interfaces.</description>
+      <pubDate>Sun, 22 Nov 2026 03:40:33 GMT</pubDate>
+      <enclosure url="https://ThierryGerritse.github.io/keep-learning/agent_ep_06_2026-11-22_0327.wav" type="audio/wav" length="24754604" />
+      <guid>https://ThierryGerritse.github.io/keep-learning/agent_ep_06_2026-11-22_0327.wav</guid>
+    </item>
+    <item>
       <title>Episode 05: Structured Outputs and API Contracts</title>
       <description>Why free-form text breaks software pipelines. Pydantic models, JSON Schema generation, constrained decoding, and guaranteed schema compliance for tool calling. Homework: Create a Pydantic schema for an agent action command and enforce valid JSON output from your model.</description>
       <pubDate>Sat, 21 Nov 2026 03:30:29 GMT</pubDate>

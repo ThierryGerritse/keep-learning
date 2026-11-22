@@ -1,4 +1,4 @@
 {
-  "current_episode_index": 5,
-  "previous_episode_summary": "In Episode 5 (Structured Outputs and API Contracts), we explored: {\n  \"summary\": \"In Episode 5, we explored how enforcing structured outputs like JSON transforms unpredictable LLM responses into dependable software components. We discussed the importance of strict API contracts and schema validation using tools like Pydantic to eliminate downstream parsing failures. Finally, we emphasized how native structured generation bridges the gap between generative models and robust production architecture.\"\n}"
+  "current_episode_index": 6,
+  "previous_episode_summary": "In Episode 6 (The Base Codebase Architecture), we explored: {\n  \"summary\": \"Yesterday in Episode 6, we laid down the foundational blueprints of our project by establishing a clean, modular folder structure and selecting our core architectural patterns. We walked through the importance of separation of concerns, demonstrating how isolating business logic from data access keeps the codebase maintainable and scalable. Finally, we locked in our linting, typing, and configuration standards so our workflow stays seamless as we start building out new features.\"\n}"
 }
