@@ -1,4 +1,4 @@
 {
-  "current_episode_index": 6,
-  "previous_episode_summary": "In Episode 6 (The Base Codebase Architecture), we explored: {\n  \"summary\": \"Yesterday in Episode 6, we laid down the foundational blueprints of our project by establishing a clean, modular folder structure and selecting our core architectural patterns. We walked through the importance of separation of concerns, demonstrating how isolating business logic from data access keeps the codebase maintainable and scalable. Finally, we locked in our linting, typing, and configuration standards so our workflow stays seamless as we start building out new features.\"\n}"
+  "current_episode_index": 7,
+  "previous_episode_summary": "In Episode 7 (The Memory Hierarchy - From Registers to Cold Storage), we explored: {\n  \"episode\": 7,\n  \"title\": \"The Memory Hierarchy - From Registers to Cold Storage\",\n  \"summary\": [\n    \"We broke down the memory hierarchy, explaining how systems balance blazing-fast registers with massive, sluggish cold storage.\",\n    \"You learned how cache locality and clever prediction algorithms keep your CPU fed without constantly stalling for RAM.\",\n    \"We wrapped up by looking at how data cascades down to SSDs, HDDs, and deep archives when it's time to save space and power.\"\n  ]\n}"
 }

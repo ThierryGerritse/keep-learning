@@ -2,6 +2,13 @@
 <rss version="2.0" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd">
   <channel>
     <item>
+      <title>Episode 07: The Memory Hierarchy - From Registers to Cold Storage</title>
+      <description>Cognitive architectures: working memory, ephemeral scratchpads, short-term episodic memory, and persistent semantic storage. Homework: Map out which user data belongs in working memory vs vector storage vs persistent relational records.</description>
+      <pubDate>Mon, 23 Nov 2026 03:30:15 GMT</pubDate>
+      <enclosure url="https://ThierryGerritse.github.io/keep-learning/agent_ep_07_2026-11-23_0327.wav" type="audio/wav" length="23821484" />
+      <guid>https://ThierryGerritse.github.io/keep-learning/agent_ep_07_2026-11-23_0327.wav</guid>
+    </item>
+    <item>
       <title>Episode 06: The Base Codebase Architecture</title>
       <description>Setting up the project repository: directory layout, event-driven architecture, internal telemetry, and logging the agent's internal monologue and tool trace. Homework: Initialize the Git repo with a modular folder structure: /core, /memory, /tools, and /interfaces.</description>
       <pubDate>Sun, 22 Nov 2026 03:40:33 GMT</pubDate>
