@@ -2,6 +2,13 @@
 <rss version="2.0" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd">
   <channel>
     <item>
+      <title>Episode 08: Short-Term Episodic Memory and Context Compaction</title>
+      <description>Sliding window buffers, rolling summaries, pruning obsolete tool responses, and dynamic context compaction without losing key facts. Homework: Implement a rolling summary function that compresses chat history every 10 turns.</description>
+      <pubDate>Tue, 24 Nov 2026 03:53:28 GMT</pubDate>
+      <enclosure url="https://ThierryGerritse.github.io/keep-learning/agent_ep_08_2026-11-24_0327.wav" type="audio/wav" length="33832364" />
+      <guid>https://ThierryGerritse.github.io/keep-learning/agent_ep_08_2026-11-24_0327.wav</guid>
+    </item>
+    <item>
       <title>Episode 07: The Memory Hierarchy - From Registers to Cold Storage</title>
       <description>Cognitive architectures: working memory, ephemeral scratchpads, short-term episodic memory, and persistent semantic storage. Homework: Map out which user data belongs in working memory vs vector storage vs persistent relational records.</description>
       <pubDate>Mon, 23 Nov 2026 03:30:15 GMT</pubDate>
