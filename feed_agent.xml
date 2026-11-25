@@ -2,6 +2,13 @@
 <rss version="2.0" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd">
   <channel>
     <item>
+      <title>Episode 09: Long-Term Vector Memory - Semantic Embeddings Deep Dive</title>
+      <description>Embedding models (MTEB leaderboard), cosine similarity, semantic chunking algorithms, chunk overlap, and vector dimensionality tradeoffs. Homework: Write a chunking script that splits your personal notes based on Markdown headings rather than arbitrary character counts.</description>
+      <pubDate>Wed, 25 Nov 2026 03:30:43 GMT</pubDate>
+      <enclosure url="https://ThierryGerritse.github.io/keep-learning/agent_ep_09_2026-11-25_0327.wav" type="audio/wav" length="29184044" />
+      <guid>https://ThierryGerritse.github.io/keep-learning/agent_ep_09_2026-11-25_0327.wav</guid>
+    </item>
+    <item>
       <title>Episode 08: Short-Term Episodic Memory and Context Compaction</title>
       <description>Sliding window buffers, rolling summaries, pruning obsolete tool responses, and dynamic context compaction without losing key facts. Homework: Implement a rolling summary function that compresses chat history every 10 turns.</description>
       <pubDate>Tue, 24 Nov 2026 03:53:28 GMT</pubDate>
