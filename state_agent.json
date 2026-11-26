@@ -1,4 +1,4 @@
 {
-  "current_episode_index": 9,
-  "previous_episode_summary": "In Episode 9 (Long-Term Vector Memory - Semantic Embeddings Deep Dive), we explored: {\n  \"episode\": 9,\n  \"title\": \"Long-Term Vector Memory - Semantic Embeddings Deep Dive\",\n  \"summary\": [\n    \"Today we explored how semantic embeddings convert complex data into dense vectors for long-term memory systems.\",\n    \"We broke down the mechanics of vector spaces, similarity search, and how models capture deep contextual meaning.\",\n    \"Tune in next as we cover practical implementation strategies for integrating these embeddings into your architecture.\"\n  ]\n}"
+  "current_episode_index": 10,
+  "previous_episode_summary": "In Episode 10 (Vector Databases in Practice - Choosing Local Simplicity), we explored: [\n  \"Yesterday we explored the practical side of vector databases and why starting with local simplicity is often the best approach.\",\n  \"We broke down how managing embeddings locally can dramatically reduce initial infrastructure overhead and speed up prototyping.\",\n  \"Ultimately, scaling up should only happen once your local setup proves it actually needs distributed performance.\"\n]"
 }
