@@ -2,6 +2,13 @@
 <rss version="2.0" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd">
   <channel>
     <item>
+      <title>Episode 11: Hybrid Search and Cross-Encoder Re-Ranking</title>
+      <description>Why pure vector search fails on keyword lookups (names, serial numbers, dates). Combining BM25 keyword search with dense embeddings, plus secondary re-ranking with cross-encoders. Homework: Implement a Reciprocal Rank Fusion (RRF) algorithm combining BM25 and vector similarity scores.</description>
+      <pubDate>Sat, 28 Nov 2026 03:36:09 GMT</pubDate>
+      <enclosure url="https://ThierryGerritse.github.io/keep-learning/agent_ep_11_2026-11-28_0328.wav" type="audio/wav" length="43281164" />
+      <guid>https://ThierryGerritse.github.io/keep-learning/agent_ep_11_2026-11-28_0328.wav</guid>
+    </item>
+    <item>
       <title>Episode 10: Vector Databases in Practice - Choosing Local Simplicity</title>
       <description>Evaluating vector stores: SQLite-vec vs Chroma vs LanceDB vs pgvector. Why embedding vectors directly into local SQLite beats heavy cloud databases for personal agents. Homework: Set up a local SQLite-vec or Chroma instance and store your first 100 embedded personal notes.</description>
       <pubDate>Thu, 26 Nov 2026 03:35:58 GMT</pubDate>

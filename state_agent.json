@@ -1,4 +1,4 @@
 {
-  "current_episode_index": 10,
-  "previous_episode_summary": "In Episode 10 (Vector Databases in Practice - Choosing Local Simplicity), we explored: [\n  \"Yesterday we explored the practical side of vector databases and why starting with local simplicity is often the best approach.\",\n  \"We broke down how managing embeddings locally can dramatically reduce initial infrastructure overhead and speed up prototyping.\",\n  \"Ultimately, scaling up should only happen once your local setup proves it actually needs distributed performance.\"\n]"
+  "current_episode_index": 11,
+  "previous_episode_summary": "In Episode 11 (Hybrid Search and Cross-Encoder Re-Ranking), we explored: {\n  \"episode\": 11,\n  \"title\": \"Hybrid Search and Cross-Encoder Re-Ranking\",\n  \"recap\": \"Yesterday, we broke down hybrid search, showing how pairing traditional BM25 keyword matching with dense vector embeddings captures both exact terms and deep semantic context. We then explored cross-encoders, highlighting how joint scoring of query-document pairs dramatically boosts ranking precision compared to bi-encoder retrieval alone. Finally, we tied it together by showing that this two-stage pipeline gives you the ultimate balance between low-latency retrieval at scale and top-tier relevance for the final results.\"\n}"
 }
